@@ -10,7 +10,7 @@ function runSlide(){
     const shoes = document.querySelectorAll(".container > *");
     const imageAmount = shoes.length - 1;
 
-
+    shoes[currentImage].style.opacity = "1";
 
     setTimeout(function run() {
 
