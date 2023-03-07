@@ -32,14 +32,27 @@
     font-weight: 800;
     color: white;
     border: none;
-    transition: all 100ms ease-in-out;
+    transition: all 180ms ease-in-out;
     width: 110px;
     height: 60px;
 }
 .btn:hover{
     background: #407778FF;
 }
-.counter{
-    display: block;
-    font-size: 20px;
+.pager-container{
+    display: flex;
+}
+.pager-unit{
+    margin-right: 5px;
+    height: 15px;
+    width: 15px;
+    background: cadetblue;
+    border-radius: 10px;
+    transition: all 180ms ease-in-out;
+}
+.pager-unit:last-child{
+    margin-right: 0;
+}
+.pager-unit:hover, .pager-active{
+    background: #407778FF;
 }
