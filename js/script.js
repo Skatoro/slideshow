@@ -8,6 +8,7 @@ window.addEventListener('DOMContentLoaded', () => {
 function run(){
     let delay = 5000;
     let currentImage = 0;
+    let isStopped = false;
 
     const shoes = document.querySelectorAll(".container > *");
     const imageAmount = shoes.length - 1;
@@ -43,27 +44,35 @@ function run(){
         timer = setTimeout(runSlide, delay);
 
         changeSlide("next");
+        isStopped = false;
     }
     function stopSlide() {
         clearTimeout(timer);
+        isStopped = true;
     }
     function nextPress() {
         clearTimeout(timer);
 
         changeSlide("next");
-        timer = setTimeout(runSlide, delay);
+        if (!isStopped) {
+            timer = setTimeout(runSlide, delay);
+        }
     }
     function prevPress() {
         clearTimeout(timer);
 
         changeSlide("prev");
-        timer = setTimeout(runSlide, delay);
+        if (!isStopped) {
+            timer = setTimeout(runSlide, delay);
+        }
     }
     function pagerPress(id) {
         clearTimeout(timer);
 
         changeSlide(Number(id));
-        timer = setTimeout(runSlide, delay);
+        if (!isStopped) {
+            timer = setTimeout(runSlide, delay);
+        }
     }
     function changeSlide(pointer) {
         pager[currentImage].classList.remove("pager-active");
