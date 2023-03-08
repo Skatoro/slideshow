@@ -9,6 +9,7 @@ function run(){
     let delay = 5000;
     let currentImage = 0;
     let isStopped = false;
+    let firstActiveImage = 0;
 
     const shoes = document.querySelectorAll(".container > *");
     const imageAmount = shoes.length - 1;
@@ -28,7 +29,7 @@ function run(){
     stopButton.addEventListener("click", stopSlide);
     for (let i = 0; i <= imageAmount; i++) {
         pager[i].onclick = function() {
-            pagerPress(this.id);
+            pagerPress(this.dataset.number);
         };
     }
 
@@ -38,7 +39,7 @@ function run(){
         for (let i = 0; i <= imageAmount; i++) {
             shoes[i].classList.add("invisible");
         }
-        shoes[0].classList.remove("invisible");
+        shoes[firstActiveImage].classList.remove("invisible");
     }
     function runSlide() {
         timer = setTimeout(runSlide, delay);
@@ -66,10 +67,10 @@ function run(){
             timer = setTimeout(runSlide, delay);
         }
     }
-    function pagerPress(id) {
+    function pagerPress(datasetNumber) {
         clearTimeout(timer);
 
-        changeSlide(Number(id));
+        changeSlide(Number(datasetNumber));
         if (!isStopped) {
             timer = setTimeout(runSlide, delay);
         }
@@ -87,9 +88,6 @@ function run(){
         } else if (!isNaN(pointer)) {
             currentImage = pointer;
         }
-        else {
-            alert(`wrong pointer`);
-        }
         pager[currentImage].classList.add("pager-active");
         shoes[currentImage].classList.remove("invisible");
         shoes[currentImage].classList.remove("fade-out");
@@ -101,9 +99,9 @@ function run(){
             const parent = document.querySelector(".pager-container");
             const child = document.createElement("div");
             child.classList.add("pager-unit");
-            child.setAttribute("id", `${i}`);
+            child.dataset.number = `${i}`;
             parent.appendChild(child)
-            if (i === 0) {
+            if (i === firstActiveImage) {
                 child.classList.add("pager-active");
             }
         }
