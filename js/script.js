@@ -58,7 +58,7 @@ function run(){
         clearTimeout(timers[galleryIndex]);
 
         changeSlide("next", galleryIndex);
-        if (!isStopped) {
+        if (!isStopped[galleryIndex]) {
             timers[galleryIndex] = setTimeout(() => runSlide(galleryIndex), delay);
         }
     }
@@ -66,7 +66,7 @@ function run(){
         clearTimeout(timers[galleryIndex]);
 
         changeSlide("prev", galleryIndex);
-        if (!isStopped) {
+        if (!isStopped[galleryIndex]) {
             timers[galleryIndex] = setTimeout(() => runSlide(galleryIndex), delay);
         }
     }
