@@ -1,201 +1,151 @@
 "use strict"
 
+function Gallery(args) {
+    this.init(args);
+}
 
-window.addEventListener('DOMContentLoaded', () => {
-    run();
-});
+Gallery.prototype = {
+    options: {
+        selector: '.gallery-container',
+        nextSelector: '.btn-next',
+        prevSelector: '.btn-prev',
+        startSelector: '.btn-start',
+        stopSelector: '.btn-stop',
+        photoContainerSelector: '.photo-container',
+        buttonContainerSelector: '.button-container',
+        pagerContainerSelector: '.pager-container',
+        firstActive: 0,
+        timeout: 5000,
+        showPager: false,
+        initRun: false,
+    },
+    init: function(args) {
+        const _self = this;
+        this.options = Object.assign(this.options, args);
+        this.currentActive = this.options.firstActive;
+        this.isStopped = !this.options.initRun;
 
-function run(){
-    let delay = 5000;
-    let isStopped = [false, false, false];
-    let firstActiveImage = [0, 1, 2];
-    let currentImage = firstActiveImage.slice();
+        this.holder = document.querySelector(this.options.selector);
 
-    let galleries = document.querySelectorAll(".gallery-container");
-    let galleriesAmount = galleries.length;
-    setGalleryIndex();
+        this.images = this.holder.querySelectorAll(`${this.options.photoContainerSelector} > *`);
+        this.imagesAmount = this.images.length;
 
-    const imageArrays = fillImageArrays();
-    const imageAmount = fillImageAmount();
+        this.nextButton = this.holder.querySelector(this.options.nextSelector);
+        this.nextButton.addEventListener("click", () => _self.changeSlide("next"));
+        this.prevButton = this.holder.querySelector(this.options.prevSelector);
+        this.prevButton.addEventListener("click", () => _self.changeSlide("prev"));
 
-    setInvisible();
+        this.startButton = this.holder.querySelector(this.options.startSelector);
+        this.startButton.addEventListener("click", () => _self.startSlide());
+        this.stopButton = this.holder.querySelector(this.options.stopSelector);
+        this.stopButton.addEventListener("click", () => _self.stopSlide());
 
-    addPagers();
-    const pagerArray = fillPagerArray();
-    setPagerIndex();
+        this.setInv();
+        if (this.options.showPager) {
+            this.addPager();
+            this.pagers = this.holder.querySelectorAll(`${this.options.pagerContainerSelector} > *`);
+            this.setPagerListener();
+        }
 
-    setButtonListeners();
-
-    let timers = startTimers();
-
-    function setInvisible() {
-        for (let i = 0; i < galleriesAmount; i++) {
-            let galleryImageAmount = imageAmount[i];
-            for (let j = 0; j < galleryImageAmount; j++) {
-                let currentImage = imageArrays[i][j];
-                currentImage.classList.add("invisible");
+        if (this.options.initRun) {
+            this.run();
+        }
+    },
+    setInv: function ()  {
+        for (let i = 0; i < this.images.length; i++) {
+            if (i !== this.options.firstActive) {
+                this.images[i].classList.add("invisible")
             }
-            let currentActiveImage = imageArrays[i][firstActiveImage[i]]
-            currentActiveImage.classList.remove("invisible");
         }
-    }
-    function runSlide(galleryIndex) {
-        timers[galleryIndex] = setTimeout(() => runSlide(galleryIndex), delay);
-
-        changeSlide("next", galleryIndex);
-    }
-    function startSlide(galleryIndex) {
-        if (isStopped[galleryIndex] === true) {
-            runSlide(galleryIndex);
-            isStopped[galleryIndex] = false;
+    },
+    addPager: function () {
+        for (let i = 0; i < this.imagesAmount; i++) {
+            const parent = this.holder.querySelector(".pager-container");
+            const child = document.createElement("div");
+            child.classList.add("pager-unit");
+            child.dataset.number = `${i}`;
+            parent.appendChild(child);
+            if (i === this.currentActive) {
+                child.classList.add("pager-active");
+            }
         }
-    }
-    function stopSlide(galleryIndex) {
-        clearTimeout(timers[galleryIndex]);
-        isStopped[galleryIndex] = true;
-    }
-    function nextPress(galleryIndex) {
-        clearTimeout(timers[galleryIndex]);
-
-        changeSlide("next", galleryIndex);
-        if (!isStopped[galleryIndex]) {
-            timers[galleryIndex] = setTimeout(() => runSlide(galleryIndex), delay);
+    },
+    setPagerListener: function () {
+        const _self = this;
+        for (let i = 0; i < this.imagesAmount; i++) {
+            let currentPagerUnit = this.pagers[i];
+            currentPagerUnit.onclick = function() {
+                _self.changeSlide(Number(currentPagerUnit.dataset.number))
+            };
         }
-    }
-    function prevPress(galleryIndex) {
-        clearTimeout(timers[galleryIndex]);
+    },
+    changeSlide: function (pointer) {
+        this.clearInterval();
 
-        changeSlide("prev", galleryIndex);
-        if (!isStopped[galleryIndex]) {
-            timers[galleryIndex] = setTimeout(() => runSlide(galleryIndex), delay);
-        }
-    }
-    function pagerPress(datasetNumber, galleryIndex) {
-        clearTimeout(timers[galleryIndex]);
+        let currImg = this.images[this.currentActive];
+        let currPager = this.pagers[this.currentActive];
 
-        changeSlide(Number(datasetNumber), galleryIndex);
-        if (!isStopped[galleryIndex]) {
-            timers[galleryIndex] = setTimeout(() => runSlide(galleryIndex), delay);
-        }
-    }
-    function changeSlide(pointer, galleryIndex) {
-        let currentImg = currentImage[galleryIndex];
-
-        pagerArray[galleryIndex][currentImg].classList.remove("pager-active");
-        imageArrays[galleryIndex][currentImg].classList.add("invisible");
-        imageArrays[galleryIndex][currentImg].classList.remove("fade-in");
-        imageArrays[galleryIndex][currentImg].classList.add("fade-out");
+        this.clearFadeOut();
+        currPager.classList.remove("pager-active");
+        currImg.classList.add("invisible");
+        currImg.classList.remove("fade-in");
+        currImg.classList.add("fade-out");
         if (pointer === "next") {
-            currentImage[galleryIndex] === imageAmount[galleryIndex] - 1 ?
-                currentImage[galleryIndex] = 0 : currentImage[galleryIndex]++;
+            this.currentActive === this.imagesAmount - 1 ?
+                this.currentActive = 0 : this.currentActive++;
         }
         else if (pointer === "prev") {
-            currentImage[galleryIndex] === 0 ?
-                currentImage[galleryIndex] = imageAmount[galleryIndex] - 1 : currentImage[galleryIndex]--;
+            this.currentActive === 0 ?
+                this.currentActive = this.imagesAmount - 1 : this.currentActive--;
         } else if (!isNaN(pointer)) {
-            currentImage[galleryIndex] = pointer;
+            this.currentActive = pointer;
         }
-        currentImg = currentImage[galleryIndex];
-        pagerArray[galleryIndex][currentImg].classList.add("pager-active");
-        imageArrays[galleryIndex][currentImg].classList.remove("invisible");
-        imageArrays[galleryIndex][currentImg].classList.remove("fade-out");
-        imageArrays[galleryIndex][currentImg].classList.add("fade-in");
+        currImg = this.images[this.currentActive];
+        currPager = this.pagers[this.currentActive];
 
-        clearExcessFade(galleryIndex);
-    }
-    function addPagers() {
-        for (let i = 0; i < galleriesAmount; i++) {
-            let galleryImageAmount = imageAmount[i]
+        currPager.classList.add("pager-active");
+        currImg.classList.remove("invisible");
+        currImg.classList.remove("fade-out");
+        currImg.classList.add("fade-in");
 
-            for (let j = 0; j < galleryImageAmount; j++) {
-                const parent = galleries[i].querySelector(".pager-container");
-                const child = document.createElement("div");
-                child.classList.add("pager-unit");
-                child.dataset.number = `${j}`;
-                parent.appendChild(child);
-                if (j === firstActiveImage[i]) {
-                    child.classList.add("pager-active");
-                }
-            }
+        if (!this.isStopped) {
+            this.interval = setInterval(() => this.run(), this.options.timeout);
         }
-    }
-    function clearExcessFade(galleryIndex) {            // когда быстро меняешь слайд, появлялось много анимаций fadeOut
-        let previousLeft = currentImage[galleryIndex] - 2;
-        let previousRight = currentImage[galleryIndex] + 2;
-        let currentImageAmount = imageAmount[galleryIndex];
+    },
+    clearFadeOut: function () {
+        for (let img of this.images) {
+            img.classList.remove("fade-out");
+        }
+    },
+    startSlide: function() {
+        this.run();
+        this.isStopped = false;
+    },
+    stopSlide: function() {
+        this.clearInterval();
+        this.isStopped = true;
+    },
+    run: function() {
+        this.clearInterval();
+        this.interval = setInterval(() => {
+            this.changeSlide("next");
+        }, this.options.timeout);
+    },
 
-        if (previousLeft < 0) {
-            previousLeft += currentImageAmount;
-        }
-        if (previousRight > currentImageAmount - 1) {
-            previousRight -= currentImageAmount;
-        }
-        imageArrays[galleryIndex][previousLeft].classList.remove("fade-out");
-        imageArrays[galleryIndex][previousRight].classList.remove("fade-out");
-    }
-    function setGalleryIndex(){
-        for (let i = 0; i < galleriesAmount; i++) {
-            galleries[i].dataset.index = `${i}`;
+    clearInterval: function() {
+        if (this.interval) {
+            clearInterval(this.interval);
         }
     }
-    function fillImageArrays() {
-        let imageArrays = [];
-        for (let i = 0; i < galleriesAmount; i++) {
-            imageArrays.push(galleries[i].querySelectorAll(".photo-container > *"));
-        }
-        return imageArrays;
-    }
-    function fillImageAmount() {
-        let imageAmounts = [];
-        for (let i = 0; i < imageArrays.length; i++) {
-            imageAmounts.push(imageArrays[i].length);
-        }
-        return imageAmounts;
-    }
-    function fillPagerArray() {
-        let pagerArray = [];
-        for (let i = 0; i < galleriesAmount; i++) {
-            pagerArray.push(galleries[i].querySelectorAll(".pager-container > *"));
-        }
-        return pagerArray;
-    }
-    function setPagerIndex() {
-        for (let i = 0; i < galleriesAmount; i++) {
-            let galleryImageAmount = imageAmount[i];
-            let galleryIndex = galleries[i].dataset.index;
+};
 
-            for (let j = 0; j < galleryImageAmount; j++) {
-                let currentPagerUnit = pagerArray[i][j];
-                currentPagerUnit.onclick = function() {
-                    pagerPress(this.dataset.number, galleryIndex);
-                };
-            }
-
-        }
-    }
-    function setButtonListeners() {
-        for (let i = 0; i < galleriesAmount; i++) {
-            let currentGallery = galleries[i];
-            let galleryIndex = galleries[i].dataset.index;
-
-            const nextButton = currentGallery.querySelector(".btn-next");
-            const prevButton = currentGallery.querySelector(".btn-prev");
-            const startButton = currentGallery.querySelector(".btn-start");
-            const stopButton = currentGallery.querySelector(".btn-stop");
-
-            nextButton.addEventListener("click", () => nextPress(galleryIndex));
-            prevButton.addEventListener("click", () => prevPress(galleryIndex));
-            startButton.addEventListener("click", () => startSlide(galleryIndex));
-            stopButton.addEventListener("click", () => stopSlide(galleryIndex));
-        }
-    }
-    function startTimers() {
-        let timers = [];
-
-        for (let i = 0; i < galleriesAmount; i++) {
-            let currentGallery = i;
-            timers.push(setTimeout(() => runSlide(currentGallery), delay));
-        }
-        return timers;
-    }
-}
+window.addEventListener('DOMContentLoaded', () => {
+    let gal1 = new Gallery({
+        selector: '.gallery-container',
+        nextSelector: '.btn-next',
+        prevSelector: '.btn-prev',
+        timeout: 3000,
+        showPager: true,
+        initRun: true,
+    });
+});
