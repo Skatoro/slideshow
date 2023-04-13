@@ -149,6 +149,7 @@ function createGalleries() {
         let tempGal = new Gallery({
             node: node,
             showPager: true,
+            initRun: true,
         })
 
         galleries.push(tempGal);
