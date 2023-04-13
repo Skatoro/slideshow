@@ -45,7 +45,7 @@
 .page{
     display: flex;
     justify-content: space-between;
-    min-width: 1250px;
+
 }
 .shoes{
     width: 100%;
@@ -108,4 +108,5 @@
 .gallery-container{
     height: fit-content;
     width: fit-content;
+    margin-right: 30px;
 }
