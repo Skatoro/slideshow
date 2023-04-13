@@ -25,7 +25,8 @@ Gallery.prototype = {
         this.currentActive = this.options.firstActive;
         this.isStopped = !this.options.initRun;
 
-        this.holder = document.querySelector(this.options.selector);
+        console.log(this.options.firstActive)
+        this.holder = this.options.node;
 
         this.images = this.holder.querySelectorAll(`${this.options.photoContainerSelector} > *`);
         this.imagesAmount = this.images.length;
@@ -139,13 +140,24 @@ Gallery.prototype = {
     }
 };
 
+function createGalleries() {
+    let nodes = document.querySelectorAll('.gallery-container');
+    let galleries = [];
+
+    nodes.forEach(node => {
+        console.log(node)
+        let tempGal = new Gallery({
+            node: node,
+            showPager: true,
+        })
+
+        galleries.push(tempGal);
+    })
+
+    galleries[1].options.firstActive = 2;               // куда всунуть строчки с настройками я не уловил
+    galleries[1].options.timeout = 2500;
+}
+
 window.addEventListener('DOMContentLoaded', () => {
-    let gal1 = new Gallery({
-        selector: '.gallery-container',
-        nextSelector: '.btn-next',
-        prevSelector: '.btn-prev',
-        timeout: 3000,
-        showPager: true,
-        initRun: true,
-    });
+    createGalleries();
 });
