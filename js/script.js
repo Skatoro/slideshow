@@ -6,6 +6,7 @@ function Gallery(args) {
 
 Gallery.prototype = {
     options: {
+        node: null,
         selector: '.gallery-container',
         nextSelector: '.btn-next',
         prevSelector: '.btn-prev',
@@ -14,7 +15,7 @@ Gallery.prototype = {
         photoContainerSelector: '.photo-container',
         buttonContainerSelector: '.button-container',
         pagerContainerSelector: '.pager-container',
-        firstActive: 0,
+        firstactive: 0,
         timeout: 5000,
         showPager: false,
         initRun: false,
@@ -22,10 +23,11 @@ Gallery.prototype = {
     init: function(args) {
         const _self = this;
         this.options = Object.assign(this.options, args);
-        this.currentActive = this.options.firstActive;
+        this.options = Object.assign(this.options, this.options.node.dataset)
+        console.log("options", this.options);
+        this.currentActive = Number(this.options.firstactive);
         this.isStopped = !this.options.initRun;
 
-        console.log(this.options.firstActive)
         this.holder = this.options.node;
 
         this.images = this.holder.querySelectorAll(`${this.options.photoContainerSelector} > *`);
@@ -54,7 +56,7 @@ Gallery.prototype = {
     },
     setInv: function ()  {
         for (let i = 0; i < this.images.length; i++) {
-            if (i !== this.options.firstActive) {
+            if (i !== Number(this.options.firstactive)) {
                 this.images[i].classList.add("invisible")
             }
         }
@@ -145,7 +147,6 @@ function createGalleries() {
     let galleries = [];
 
     nodes.forEach(node => {
-        console.log(node)
         let tempGal = new Gallery({
             node: node,
             showPager: true,
@@ -154,9 +155,6 @@ function createGalleries() {
 
         galleries.push(tempGal);
     })
-
-    galleries[1].options.firstActive = 2;               // куда всунуть строчки с настройками я не уловил
-    galleries[1].options.timeout = 2500;
 }
 
 window.addEventListener('DOMContentLoaded', () => {
